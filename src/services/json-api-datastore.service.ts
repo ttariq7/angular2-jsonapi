@@ -125,7 +125,7 @@ export class JsonApiDatastore {
     const modelConfig: ModelConfig = model.modelConfig;
     const typeName: string = modelConfig.type;
     const requestHeaders: HttpHeaders = this.buildHeaders(headers);
-    const relationships: any = this.getRelationships(model);
+    const relationships: any = this.getRelationships(model, params);
     const url: string = this.buildUrl(modelType, params, model.id, customUrl);
 
     let httpCall: Observable<HttpResponse<Object>>;
@@ -212,9 +212,10 @@ export class JsonApiDatastore {
     return queryParams ? `${url}?${queryParams}` : url;
   }
 
-  protected getRelationships(data: any): any {
+  protected getRelationships(data: any, params: any): any {
     let relationships: any;
-
+    const includes = params ? params.include.split(',') : [];
+    
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
         if (data[key] instanceof JsonApiModel) {
@@ -234,6 +235,12 @@ export class JsonApiDatastore {
 
           relationships[key] = {
             data: relationshipData
+          };
+        } else if (includes.includes(key)) {
+          relationships = relationships || {};
+
+          relationships[key] = {
+            data: []
           };
         }
       }
